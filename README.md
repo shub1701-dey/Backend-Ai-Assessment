@@ -1,3 +1,4 @@
+
 # Backend AI Assessment – Product Scraping, Summarization & TTS
 
 This project demonstrates a backend pipeline that scrapes product data from a live website, summarizes product descriptions using AI logic, and converts those summaries into audio using a Text-to-Speech (TTS) service.
@@ -29,15 +30,14 @@ The focus of this assignment is **backend architecture, data flow, and integrati
 
 ## 🌐 Website Scraped
 
-The project scrapes product data from **[Books to Scrape](http://books.toscrape.com)**, a live demo site for web scraping.
+The project scrapes product data from **[Kapeefit](https://kapeefit.com)**, a live production website.
 
 The script targets:
-- **Product Name** (Book Title)
+- **Product Name**
 - **Description** (Extracted from the product detail pages)
 
 Using a live site demonstrates the ability to handle real-world HTML structures, navigate DOM elements, and manage asynchronous network requests.
 
----
 
 ## Project Structure
 
@@ -129,3 +129,5 @@ The OpenAI prompt is strictly defined to return only 1-2 sentences of plain text
 
 Reliability: 
 The script includes sequential processing for API calls to remain within standard rate limits and handle "responsible usage" of the provided assessment keys.
+=======
+

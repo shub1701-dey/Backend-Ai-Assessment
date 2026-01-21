@@ -1,42 +1,47 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 
-const BASE_URL = "https://books.toscrape.com/";
+const PRODUCT_URLS = [
+  "https://kapeefit.com/product/kamour-gold/",
+  "https://kapeefit.com/product/amrita-kaya-kalpa-rasayan-30-tablets/"
+];
 
-export async function scrapeProducts() {
-  const { data } = await axios.get(BASE_URL);
-  const $ = cheerio.load(data);
-
-  const productLinks = [];
-
-  $(".product_pod h3 a").each((i, el) => {
-    if (i < 5) {
-      const href = $(el).attr("href");
-
-     
-      const fullUrl = new URL(href, BASE_URL).href;
-      productLinks.push(fullUrl);
-    }
-  });
-
+export default async function scrapeProducts() {
   const products = [];
 
-  for (const link of productLinks) {
-    const { data: productPage } = await axios.get(link);
-    const $product = cheerio.load(productPage);
+  for (const url of PRODUCT_URLS) {
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+          "Accept-Language": "en-US,en;q=0.9",
+        },
+        timeout: 20000,
+      });
 
-    const title = $product(".product_main h1").text().trim();
+      const $ = cheerio.load(response.data);
 
-    // FULL paragraph description
-    const description = $product("#product_description")
-      .next("p")
-      .text()
-      .trim();
+      const title = $("h1.product_title").text().trim();
+      const price = $("p.price").first().text().trim();
+      const description = $(".woocommerce-product-details__short-description")
+        .text()
+        .replace(/\s+/g, " ")
+        .trim();
 
-    products.push({
-      title,
-      description: description || "No description available"
-    });
+      if (!title || !description) {
+        throw new Error("Missing product data");
+      }
+
+      products.push({
+        title,
+        description,
+        price,
+        url,
+      });
+
+    } catch (error) {
+      console.error(`⚠️ Failed to scrape ${url}: ${error.message}`);
+    }
   }
 
   return products;

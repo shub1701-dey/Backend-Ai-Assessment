@@ -1,22 +1,21 @@
+// tts.js
 import fs from "fs";
 import path from "path";
-import dotenv from "dotenv";
-import { ElevenLabsClient } from "elevenlabs";
+import axios from "axios";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const elevenlabs = new ElevenLabsClient({
-  apiKey: process.env.ELEVENLABS_API_KEY
-});
+// Use a FREE voice (Rachel – works on free tier)
+const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";
 
-export async function generateAudio(summaries) {
-  if (!process.env.ELEVENLABS_API_KEY) {
-    console.warn("ElevenLabs key missing. Skipping audio.");
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+
+async function generateAudio(summaries) {
+  if (!ELEVENLABS_API_KEY) {
+    console.warn("⚠️ ELEVENLABS_API_KEY missing. Skipping audio generation.");
     return;
   }
 
@@ -24,18 +23,38 @@ export async function generateAudio(summaries) {
   fs.mkdirSync(audioDir, { recursive: true });
 
   for (let i = 0; i < summaries.length; i++) {
+    const text = `${summaries[i].title}. ${summaries[i].summary}`;
+
     try {
-      const audio = await elevenlabs.textToSpeech.convert(
-        "Rachel",
-        { text: summaries[i].summary }
+      const response = await axios.post(
+        `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
+        {
+          text,
+          model_id: "eleven_monolingual_v1",
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75
+          }
+        },
+        {
+          headers: {
+            "xi-api-key": ELEVENLABS_API_KEY,
+            "Content-Type": "application/json",
+            Accept: "audio/mpeg"
+          },
+          responseType: "arraybuffer"
+        }
       );
 
-      const filePath = path.join(audioDir, `summary_${i + 1}.mp3`);
-      const stream = fs.createWriteStream(filePath);
-      audio.pipe(stream);
-
-    } catch {
-      console.warn(`Audio failed for item ${i + 1}`);
+      const outputPath = path.join(audioDir, `summary_${i + 1}.mp3`);
+      fs.writeFileSync(outputPath, response.data);
+    } catch (error) {
+      console.warn(
+        `⚠️ ElevenLabs failed for item ${i + 1}:`,
+        error.response?.status || error.message
+      );
     }
   }
 }
+
+export default generateAudio;
