@@ -54,6 +54,7 @@ Using a live production website demonstrates the ability to handle real-world HT
 
 
 📁 Project Structure
+
 Backend-Ai-Assessment/
 │
 ├── index.js           # Main controller: Scraping → Storage → Summarization → TTS
@@ -74,6 +75,7 @@ Backend-Ai-Assessment/
 ├── .gitignore         # Ignores node_modules, .env, audio
 ├── package.json       # Project metadata and dependencies
 └── README.md          # Project documentation
+
 
 
 ▶️ How to Run the Project
