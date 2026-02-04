@@ -3,7 +3,7 @@ import * as cheerio from "cheerio";
 
 const PRODUCT_URLS = [
   "https://kapeefit.com/product/kamour-gold/",
-  "https://kapeefit.com/product/amrita-kaya-kalpa-rasayan-30-tablets/"
+  "https://kapeefit.com/product/amrita-kaya-kalpa-rasayan-30-tablets/",
 ];
 
 export default async function scrapeProducts() {
@@ -11,36 +11,43 @@ export default async function scrapeProducts() {
 
   for (const url of PRODUCT_URLS) {
     try {
-      const response = await axios.get(url, {
+      const { data } = await axios.get(url, {
         headers: {
-          "User-Agent": "Mozilla/5.0",
-          "Accept-Language": "en-US,en;q=0.9",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120",
+          Accept: "text/html",
         },
         timeout: 20000,
       });
 
-      const $ = cheerio.load(response.data);
+      const $ = cheerio.load(data);
 
-      const title = $("h1.product_title").text().trim();
-      const price = $("p.price").first().text().trim();
-      const description = $(".woocommerce-product-details__short-description")
+      const title = $("h1.product_title").first().text().trim();
+
+      const price =
+        $("p.price").first().text().trim() ||
+        $("span.woocommerce-Price-amount").first().text().trim();
+
+      // FULL DESCRIPTION (not short snippet)
+      const description = $("#tab-description")
         .text()
         .replace(/\s+/g, " ")
         .trim();
 
       if (!title || !description) {
-        throw new Error("Missing product data");
+        throw new Error("Missing title or description");
       }
 
       products.push({
         title,
-        description,
         price,
+        description,
         url,
       });
 
-    } catch (error) {
-      console.error(`⚠️ Failed to scrape ${url}: ${error.message}`);
+      console.log(`✅ Scraped: ${title}`);
+    } catch (err) {
+      console.warn(`⚠️ Failed to scrape ${url}: ${err.message}`);
     }
   }
 

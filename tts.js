@@ -1,58 +1,42 @@
 // tts.js
 import fs from "fs";
 import path from "path";
-import axios from "axios";
+import gTTS from "gtts";
 import { fileURLToPath } from "url";
-import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Use a FREE voice (Rachel – works on free tier)
-const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";
-
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+const __dirname = path.dirname(__filename);
 
 async function generateAudio(summaries) {
-  if (!ELEVENLABS_API_KEY) {
-    console.warn("⚠️ ELEVENLABS_API_KEY missing. Skipping audio generation.");
+  if (!Array.isArray(summaries) || summaries.length === 0) {
+    console.warn("No summaries provided. Skipping audio generation.");
     return;
   }
 
   const audioDir = path.join(__dirname, "audio");
   fs.mkdirSync(audioDir, { recursive: true });
 
-  for (let i = 0; i < summaries.length; i++) {
-    const text = `${summaries[i].title}. ${summaries[i].summary}`;
+  // Generate audio 
+  const items = summaries.slice(0, 2);
+
+  for (let i = 0; i < items.length; i++) {
+    const { title, summary } = items[i];
+    const text = `${title}. ${summary}`;
 
     try {
-      const response = await axios.post(
-        `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
-        {
-          text,
-          model_id: "eleven_monolingual_v1",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75
-          }
-        },
-        {
-          headers: {
-            "xi-api-key": ELEVENLABS_API_KEY,
-            "Content-Type": "application/json",
-            Accept: "audio/mpeg"
-          },
-          responseType: "arraybuffer"
-        }
-      );
-
+      const gtts = new gTTS(text, "en");
       const outputPath = path.join(audioDir, `summary_${i + 1}.mp3`);
-      fs.writeFileSync(outputPath, response.data);
+
+      await new Promise((resolve, reject) => {
+        gtts.save(outputPath, (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      console.log(`🔊 Audio generated: summary_${i + 1}.mp3`);
     } catch (error) {
-      console.warn(
-        `⚠️ ElevenLabs failed for item ${i + 1}:`,
-        error.response?.status || error.message
-      );
+      console.warn(` Audio generation failed for item ${i + 1}:`, error.message);
     }
   }
 }
