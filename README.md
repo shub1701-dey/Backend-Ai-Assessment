@@ -1,133 +1,131 @@
+Backend AI Assessment – Product Scraping, Summarization & TTS
 
-# Backend AI Assessment – Product Scraping, Summarization & TTS
+This project demonstrates a backend pipeline that scrapes product data from a live website, summarizes product descriptions using AI, and converts those summaries into audio using Google Text-to-Speech (gTTS).
 
-This project demonstrates a backend pipeline that scrapes product data from a live website, summarizes product descriptions using AI logic, and converts those summaries into audio using a Text-to-Speech (TTS) service.
-
-The focus of this assignment is **backend architecture, data flow, and integration of external services**, not frontend UI.
-
----
-
-## 📌 Features
-
-- Scrapes live product data (name, description) from a real-world web source
-- Stores raw scraped data in JSON format
-- Generates concise 1-2 sentence summaries for each product using OpenAI
-- Converts summaries into individual audio files using ElevenLabs TTS
-- Gracefully handles API key usage and errors
-
----
-
-## 🛠️ Tech Stack
-
-- **Node.js** (ES Modules)
-- **Cheerio** or **Axios** – Live web scraping and HTML parsing
-- **OpenAI API** – LLM-based summarization
-- **ElevenLabs API** – Text-to-Speech integration
-- **dotenv** – Environment variable management
-- **File System (fs)** – Local data persistence
-
----
-
-## 🌐 Website Scraped
-
-The project scrapes product data from **[Kapeefit](https://kapeefit.com)**, a live production website.
-
-The script targets:
-- **Product Name**
-- **Description** (Extracted from the product detail pages)
-
-Using a live site demonstrates the ability to handle real-world HTML structures, navigate DOM elements, and manage asynchronous network requests.
+The focus of this assignment is backend architecture, data flow, error handling, and third-party API integration, not frontend UI.
 
 
-## Project Structure
+📌 Features
 
-```text
-backend-ai-assessment/
+Scrapes live product data (title, description, price) from a real production website
+
+Stores raw scraped data in JSON format
+
+Generates concise 1–2 sentence summaries for each product using OpenAI
+
+Converts summaries into audio files using gTTS (no paid API required)
+
+Graceful error handling for scraping and AI failures
+
+Clean, modular backend architecture
+
+
+🛠️ Tech Stack
+
+Node.js (ES Modules)
+
+Axios – HTTP requests
+
+Cheerio – HTML parsing and DOM traversal
+
+OpenAI API – AI-based text summarization
+
+gTTS (Google Text-to-Speech) – Audio generation
+
+dotenv – Environment variable management
+
+fs (File System) – Local data persistence
+
+
+🌐 Website Scraped
+
+The project scrapes product data from Kapeefit
+, a live e-commerce website.
+
+The script targets two real product pages and extracts:
+
+Product Title
+
+Description (from product detail pages)
+
+Price
+
+Using a live production website demonstrates the ability to handle real-world HTML structures, dynamic content, and network reliability issues.
+
+
+📁 Project Structure
+Backend-Ai-Assessment/
 │
-├── index.js           # Main controller: Runs Scraping → Storage → Summarization → TTS
+├── index.js           # Main controller: Scraping → Storage → Summarization → TTS
 │
-├── scraper.js         # Scrapes data from books.toscrape.com
-│                      # Extracts exactly 5 products/books
+├── scraper.js         # Scrapes 2 products from Kapeefit product pages
 │
-├── summarizer.js      # Uses OpenAI to generate short AI summaries
-│                      # Saves summaries to JSON
+├── summarizer.js      # Uses OpenAI (gpt-4o-mini) to generate short summaries
 │
-├── tts.js             # Integrates with ElevenLabs API
-│                      # Generates 5 distinct .mp3 files
+├── tts.js             # Converts summaries into audio using gTTS
 │
 ├── data/
-│   ├── products.json  # Stored raw scraped book data
-│   └── summaries.json # AI-generated book summaries
+│   ├── products.json  # Stored raw scraped product data
+│   └── summaries.json # AI-generated product summaries
 │
 ├── audio/             # Generated audio output (.mp3 files)
 │
-├── .env               # API Keys (OPENAI_API_KEY, ELEVENLABS_API_KEY)
-├── .gitignore         # Prevents committing node_modules, .env and  audio
+├── .env               # API keys (OPENAI_API_KEY)
+├── .gitignore         # Ignores node_modules, .env, audio
 ├── package.json       # Project metadata and dependencies
 └── README.md          # Project documentation
 
-HOW TO RUN THE SCRIPT (STEP BY STEP)
 
-STEP 1: INSTALL NODE.JS
-Download Node.js (LTS version) from: https://nodejs.org
+▶️ How to Run the Project
+Step 1: Install Node.js
 
-Verify installation in your terminal:
+Download and install Node.js (LTS) from:
+https://nodejs.org
+
+Verify installation:
 
 node -v
 npm -v
 
-STEP 2: OPEN PROJECT FOLDER
-Open your terminal or command prompt.
+Step 2: Open Project Folder
+cd path/to/Backend-Ai-Assessment
 
-Navigate to the project directory:
-cd path/to/backend-ai-assessment
-
-STEP 3: INSTALL PROJECT DEPENDENCIES
-Run the following command once to install all required libraries:
-
-Bash
-
+Step 3: Install Dependencies
 npm install
 
+Step 4: Configure Environment Variables
 
-STEP 4: CONFIGURE API KEYS (.env)
-Create a file named .env in the root folder.
+Create a .env file in the root directory and add:
 
-Paste your keys inside:
-
-OPENAI_API_KEY=your_actual_openai_key
-ELEVENLABS_API_KEY=your_actual_elevenlabs_key
+OPENAI_API_KEY=your_openai_api_key
 
 
-STEP 5: CREATE REQUIRED DIRECTORIES
-Ensure the following folders exist (create them manually if they don't):
+(gTTS does not require any API key)
 
-data/
-audio/
-
-
-STEP 6: RUN THE AUTOMATED PIPELINE
-Execute the main script:
-
+Step 5: Run the Pipeline
 node index.js
 
+📤 Output
 
+data/products.json → Raw scraped product data
 
-## Design Choices (Brief Explanation)
+data/summaries.json → AI-generated summaries
 
+audio/summary_1.mp3, audio/summary_2.mp3 → Audio summaries generated using gTTS
 
-Live Scraping Implementation: I transitioned from a static file to Books to Scrape to demonstrate real-world scraping capabilities, including navigating DOM hierarchies and handling live network latency.
+🧠 Design Choices
 
-Modular Architecture:
-By separating logic into scraper.js, summarizer.js, and tts.js, the code remains clean. index.js acts as the orchestrator to ensure a "single command" execution flow.
+Live Web Scraping
+Kapeefit was chosen to demonstrate scraping from a real production e-commerce website rather than a static demo site.
 
-Intermediate Persistence: 
-Data is saved to JSON at each stage. This allows for easier debugging and ensures that if the TTS step fails, the scraped data and AI summaries are still preserved.
+Modular Architecture
+Each responsibility (scraping, summarization, text-to-speech) is separated into its own module, keeping the codebase clean and maintainable.
 
-Prompt Engineering: 
-The OpenAI prompt is strictly defined to return only 1-2 sentences of plain text, ensuring the ElevenLabs audio output is high-quality and free of markdown/HTML artifacts.
+Intermediate Persistence
+Data is saved to JSON at each stage, ensuring partial results are preserved even if later steps fail.
 
-Reliability: 
-The script includes sequential processing for API calls to remain within standard rate limits and handle "responsible usage" of the provided assessment keys.
-=======
+AI Prompt Control
+The OpenAI prompt enforces short, clean summaries suitable for audio narration.
 
+Free & Reliable TTS
+gTTS was selected to avoid paid plans and API restrictions while still producing clear audio output.
