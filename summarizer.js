@@ -8,44 +8,34 @@ const client = new OpenAI({
 });
 
 export default async function summarizeProducts(products) {
-  if (!Array.isArray(products) || products.length === 0) {
-    throw new Error("Products is not iterable or empty");
+  if (!Array.isArray(products) || products.length < 5) {
+    throw new Error("At least 5 products are required for summarization");
   }
 
   const summaries = [];
 
-  for (const product of products) {
-    try {
-      if (!product.description) {
-        console.warn(` Missing description for ${product.title}`);
-        continue;
-      }
+  for (const product of products.slice(0, 5)) {
+    if (!product.description || !product.title) continue;
 
-      const response = await client.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You summarize product descriptions in clear, concise 2-line summaries.",
-          },
-          {
-            role: "user",
-            content: `Product Name: ${product.title}\nDescription: ${product.description}`,
-          },
-        ],
-      });
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You create short, clear, professional 2-line summaries of product descriptions.",
+        },
+        {
+          role: "user",
+          content: `Product: ${product.title}\nDescription: ${product.description}`,
+        },
+      ],
+    });
 
-      summaries.push({
-        title: product.title,
-        summary: response.choices[0].message.content.trim(),
-      });
-    } catch (err) {
-      console.warn(
-        `Summary failed for ${product.title}:`,
-        err.message
-      );
-    }
+    summaries.push({
+      title: product.title,
+      summary: response.choices[0].message.content.trim(),
+    });
   }
 
   return summaries;

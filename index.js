@@ -9,6 +9,11 @@ import scrapeProducts from "./scraper.js";
 import summarizeProducts from "./summarizer.js";
 import generateAudio from "./tts.js";
 
+// ================= CONFIG =================
+const TARGET_URL = "https://www.kapeefit.com"; 
+// You can change ONLY this URL later
+// ==========================================
+
 // Ensure data directory exists
 const dataDir = path.join(process.cwd(), "data");
 if (!fs.existsSync(dataDir)) {
@@ -20,30 +25,32 @@ async function runPipeline() {
     console.log("Starting backend AI pipeline...");
 
     // Step 1: Scrape products
-    const products = await scrapeProducts();
-    if (!Array.isArray(products) || products.length === 0) {
-      throw new Error("No products scraped");
+    const products = await scrapeProducts(TARGET_URL);
+
+    if (!Array.isArray(products) || products.length < 5) {
+      throw new Error("Less than 5 products scraped");
     }
 
     fs.writeFileSync(
       path.join(dataDir, "products.json"),
       JSON.stringify(products, null, 2)
     );
-    console.log("Products saved.");
+    console.log("✅ Products saved.");
 
     // Step 2: Generate summaries
     const summaries = await summarizeProducts(products);
-    if (!Array.isArray(summaries) || summaries.length === 0) {
-      throw new Error("No summaries generated");
+
+    if (!Array.isArray(summaries) || summaries.length < 5) {
+      throw new Error("Summaries generation failed");
     }
 
     fs.writeFileSync(
       path.join(dataDir, "summaries.json"),
       JSON.stringify(summaries, null, 2)
     );
-    console.log("Summaries generated.");
+    console.log("✅ Summaries generated.");
 
-    // Step 3: Generate audio (gTTS)
+    // Step 3: Generate audio
     await generateAudio(summaries);
 
     console.log("✅ Pipeline completed successfully");
